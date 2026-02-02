@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electro Care | 2026 Master Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #020617; 
+            color: white; 
+            overflow-x: hidden;
+            /* Zwaq Background */
+            background-image: radial-gradient(circle at 50% -20%, #0f172a, #020617);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 10px; }
+
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        
+        .product-card { 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            border-radius: 24px; 
+            position: relative; 
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .product-card:hover { 
+            transform: translateY(-10px); 
+            border-color: #22d3ee; 
+            box-shadow: 0 15px 30px rgba(34, 211, 238, 0.15); 
+        }
+
+        .img-box { 
+            background: linear-gradient(145deg, #ffffff, #f1f5f9); 
+            border-radius: 20px; 
+            transition: 0.3s; 
+            height: 160px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+        }
+
+        .modal, .cart-overlay { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            z-index: 1000; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            background: rgba(0,0,0,0.85); 
+            backdrop-filter: blur(12px); 
+        }
+        
+        .active { display: flex !important; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .badge-hot { 
+            background: linear-gradient(90deg, #06b6d4, #3b82f6); 
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+            animation: pulse 1.5s infinite; 
+        }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* Floating WhatsApp Button */
+        .wa-float {
+            position: fixed; bottom: 30px; right: 30px;
+            background: #25d366; color: white;
+            width: 60px; height: 60px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; z-index: 500;
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3);
+            transition: 0.3s;
+        }
+        .wa-float:hover { transform: scale(1.1) rotate(10deg); }
+    </style>
+</head>
+<body>
+
+    <a href="https://wa.me/212617362196" class="wa-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <div class="bg-cyan-500 text-black py-2 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em] sticky top-0 z-[60] shadow-lg">
+         🔥 OFFRE RAMADAN 2026 : -10% AVEC LE CODE "ELECTRO2026" 🔥
+    </div>
+
+    <nav class="glass sticky top-7 z-50 mx-4 my-2 rounded-2xl py-4 px-6 flex justify-between items-center border-white/20">
+        <div class="flex flex-col">
+            <span class="text-[9px] font-extrabold text-cyan-400 leading-none tracking-widest mb-1">PREMIUM STORE</span>
+            <h1 class="text-xl font-black italic tracking-tighter uppercase">ELECTROCARE</h1>
+        </div>
+        <button onclick="toggleCart()" class="relative p-3 bg-cyan-400/10 rounded-xl border border-cyan-400/20 group transition-all hover:bg-cyan-400/20">
+            <i class="fas fa-shopping-basket text-xl text-cyan-400"></i>
+            <span id="cart-count" class="absolute -top-2 -right-2 bg-white text-black text-[10px] w-6 h-6 rounded-full flex items-center justify-center font-black shadow-lg">0</span>
+        </button>
+    </nav>
+
+    <header class="container mx-auto px-6 mt-12 mb-8 space-y-6 text-center">
+        <h2 class="text-4xl md:text-5xl font-black tracking-tighter italic uppercase">
+            The <span class="text-cyan-400">Next Gen</span> of Tech
+        </h2>
+        <div class="relative group max-w-2xl mx-auto">
+            <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors"></i>
+            <input type="text" id="searchInput" placeholder="Rechercher un modèle (iPhone 17, S26...)" 
+            class="w-full bg-slate-900/50 border border-white/10 rounded-2xl py-5 pl-14 outline-none focus:border-cyan-400/50 transition-all text-sm backdrop-blur-sm" onkeyup="searchProducts()">
+        </div>
+        
+        <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2 justify-center">
+            <button onclick="renderGrid('all', this)" class="filter-btn active glass px-6 py-2.5 rounded-xl text-[10px] font-black uppercase border-cyan-400 text-cyan-400 tracking-widest">Tout</button>
+            <button onclick="renderGrid('iphone', this)" class="filter-btn glass px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">iPhones</button>
+            <button onclick="renderGrid('samsung', this)" class="filter-btn glass px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">Samsung</button>
+            <button onclick="renderGrid('pc', this)" class="filter-btn glass px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">Laptops</button>
+            <button onclick="renderGrid('acc', this)" class="filter-btn glass px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">Accessoires</button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <div id="grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
+    </main>
+
+    <div id="pModal" class="modal" onclick="closeM()">
+        <div class="glass w-full max-w-lg rounded-[40px] p-8 relative overflow-hidden border-white/20" onclick="event.stopPropagation()">
+            <div class="img-box mb-6"><img id="mImg" class="max-h-full object-contain drop-shadow-2xl"></div>
+            <h2 id="mTitle" class="text-2xl font-black mb-2 uppercase italic"></h2>
+            <p id="mPrice" class="text-3xl font-black text-cyan-400 mb-6"></p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div class="space-y-4">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2 tracking-widest">État & Version</label>
+                    <select id="mEtat" onchange="updateModalPrice()" class="bg-slate-800 border-none rounded-xl p-3 w-full text-sm outline-none focus:ring-1 ring-cyan-400">
+                        <option value="Comme Neuf" data-sub="0">Comme Neuf (10/10)</option>
+                        <option value="Neuf Scellé" data-sub="1500">Neuf Scellé (+1500 DH)</option>
+                    </select>
+                    <select id="mStorage" onchange="updateModalPrice()" class="bg-slate-800 border-none rounded-xl p-3 w-full text-sm outline-none focus:ring-1 ring-cyan-400">
+                        <option value="128GB" data-plus="0">Standard / 128GB</option>
+                        <option value="256GB" data-plus="1000">Plus / 256GB (+1000 DH)</option>
+                        <option value="512GB" data-plus="2200">Pro / 512GB (+2200 DH)</option>
+                        <option value="1TB" data-plus="4000">Master / 1TB (+4000 DH)</option>
+                    </select>
+                </div>
+                <div class="space-y-4">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2 tracking-widest">Options VIP</label>
+                    <select id="mGarantie" onchange="updateModalPrice()" class="bg-slate-900 border border-cyan-400/30 rounded-xl p-3 w-full text-sm text-cyan-400 outline-none">
+                        <option value="Standard" data-g="0">Garantie 6 mois (Gratuit)</option>
+                        <option value="VIP 2 Ans" data-g="500">Garantie 2 ans (+500 DH)</option>
+                    </select>
+                    <div class="flex gap-2">
+                        <select id="mColor" class="bg-slate-800 border-none rounded-xl p-3 flex-1 text-sm outline-none">
+                            <option>Titane Noir</option><option>Titane Naturel</option><option>Silver</option><option>Phantom White</option>
+                        </select>
+                        <input type="number" id="mQty" value="1" min="1" class="bg-slate-800 border-none rounded-xl p-3 w-20 text-center font-bold" onchange="updateModalPrice()">
+                    </div>
+                </div>
+            </div>
+            <button onclick="addToCart()" class="w-full bg-cyan-400 text-black py-5 rounded-2xl font-black uppercase hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all transform active:scale-95 tracking-widest">Ajouter au Panier</button>
+        </div>
+    </div>
+
+    <div id="cartOverlay" class="cart-overlay" onclick="toggleCart()">
+        <div class="glass w-full max-w-md rounded-[40px] p-8 max-h-[85vh] overflow-y-auto border-white/20" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+                <h2 class="text-2xl font-black uppercase italic tracking-tighter">Mon <span class="text-cyan-400">Panier</span></h2>
+                <button onclick="toggleCart()" class="opacity-50 hover:opacity-100 text-2xl transition-all">×</button>
+            </div>
+            <div id="cartList" class="space-y-6 mb-8"></div>
+            <div class="bg-white/5 p-6 rounded-3xl space-y-4 border border-white/10 shadow-inner">
+                <div class="flex gap-2">
+                    <input type="text" id="promoCode" placeholder="CODE PROMO" class="bg-slate-900 border-none rounded-xl p-3 flex-1 text-center font-bold uppercase text-xs tracking-widest outline-none focus:ring-1 ring-cyan-400">
+                    <button onclick="applyPromo()" class="bg-white text-black px-4 rounded-xl font-black text-[10px] uppercase">OK</button>
+                </div>
+                <div class="flex justify-between items-center border-t border-white/5 pt-4">
+                    <span class="text-slate-400 text-xs font-bold uppercase tracking-widest">Total Global</span>
+                    <span id="grandTotal" class="text-2xl font-black text-cyan-400 tracking-tighter">0 DH</span>
+                </div>
+            </div>
+            <button onclick="sendOrderWhatsApp()" class="w-full bg-[#25d366] text-white py-5 rounded-2xl font-black uppercase mt-6 flex items-center justify-center gap-3 shadow-lg shadow-green-500/20 hover:brightness-110 transition-all">
+                <i class="fab fa-whatsapp text-2xl"></i> Commander via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // L-Inventory dyalk kima hwa bla naqs
+        const inventory = [
+            {cat: 'iphone', name: 'iPhone 17 Pro Max', price: 15800, img: 'https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-16-pro-max-1.jpg', hot: true},
+            {cat: 'iphone', name: 'iPhone 17 Pro', price: 13500, img: 'https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-16-pro-1.jpg', hot: true},
+            {cat: 'iphone', name: 'iPhone 17 Plus', price: 11800, img: 'https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-16-plus-1.jpg'},
+            {cat: 'iphone', name: 'iPhone 17 Standard', price: 10200, img: 'https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-16-1.jpg'},
+            {cat: 'iphone', name: 'iPhone 16 Pro Max', price: 11500, img: 'https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-15-pro-max-1.jpg'},
+            {cat: 'iphone', name: 'iPhone 16 Pro', price: 9800, img: 'https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-15-pro-1.jpg'},
+            {cat: 'iphone', name: 'iPhone 16 Plus', price: 8800, img: 'https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-15-plus-1.jpg'},
+            {cat: 'iphone', name: 'iPhone 16 Standard', price: 7800, img: 'https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-15-1.jpg'},
+            {cat: 'iphone', name: 'iPhone 15 Pro Max', price: 8900, img: 'https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-15-pro-max.jpg'},
+            {cat: 'iphone', name: 'iPhone 15 Pro', price: 7900, img: 'https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-15-pro.jpg'},
+            {cat: 'iphone', name: 'iPhone 15 Standard', price: 6500, img: 'https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-15.jpg'},
+            {cat: 'iphone', name: 'iPhone 14 Pro Max', price: 7500, img: 'https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111846_sp875-sp876-iphone14-pro-promax.png'},
+            {cat: 'iphone', name: 'iPhone 13 Standard', price: 4800, img: 'https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-13.jpg'},
+            {cat: 'samsung', name: 'Samsung S26 Ultra', price: 14800, img: 'https://digitalphones.co.ke/wp-content/uploads/2022/12/Samsung-Galaxy-S24-Ultra-5G-Titanium-Green-300x300.jpg', hot: true},
+            {cat: 'samsung', name: 'Samsung S26+', price: 11500, img: 'https://www.01net.com/app/uploads/2025/08/Samsung-Galaxy-S26-Plus-render-2.jpg'},
+            {cat: 'samsung', name: 'Samsung S26 Standard', price: 9500, img: 'https://cdn1.smartprix.com/rx-isJLArRdI-w420-h420/samsung-galaxy-s26.webp'},
+            {cat: 'samsung', name: 'Samsung S25 Ultra', price: 9500, img: 'https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s24-ultra-5g-sm-s928-stylus.jpg'},
+            {cat: 'samsung', name: 'Galaxy Z Fold 7', price: 19800, img: 'https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-z-fold6-1.jpg', hot: true},
+            {cat: 'samsung', name: 'Galaxy Z Flip 7', price: 10500, img: 'https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-z-flip6-1.jpg'},
+            {cat: 'samsung', name: 'Galaxy A57 5G', price: 4600, img: 'https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-a55-1.jpg'},
+            {cat: 'samsung', name: 'Galaxy A37 5G', price: 3200, img: 'https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-a35-1.jpg'},
+            {cat: 'android', name: 'Google Pixel 10 Pro', price: 11500, img: 'https://fdn2.gsmarena.com/vv/pics/google/google-pixel-9-pro-xl-1.jpg', hot: true},
+            {cat: 'android', name: 'Xiaomi 16 Ultra', price: 12500, img: 'https://fdn2.gsmarena.com/vv/pics/xiaomi/xiaomi-14-ultra-1.jpg'},
+            {cat: 'pc', name: 'MacBook Pro M5 (2026)', price: 25000, img: 'https://lantre.pl/media/catalog/product/cache/8f71f9d82301fac9884664a57317e337/a/p/apple-macbook-pro-14-m3-pro-12-core-cpu-18-core-gpu-18gb-ram-1tb-ssd-srebrny-silver-mrx73ze-a_1.jpg', hot: true},
+            {cat: 'pc', name: 'ROG Strix G16 RTX 5060', price: 18500, img: 'https://osaka.ma/wp-content/uploads/2025/04/ASUS-TUF-F17-1.jpg'},
+            {cat: 'pc', name: 'HP Victus 15 RTX 4060', price: 7100, img: 'https://pcgamercasa.ma/13388-large_default/hp-victus-15-i5-12500h16gb512gbrtx-4060-8gb-156-pc-gamer-casa-MAROC.jpg'},
+            {cat: 'acc', name: 'AirPods Pro 3 (2026)', price: 2300, img: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/airpods-pro-2.png', hot: true},
+            {cat: 'acc', name: 'AirPods Max 2 USB-C', price: 5900, img: 'https://canoonstore.com/wp-content/uploads/2024/11/Airpods-Max-Usb-c.jpg', hot: true},
+            {cat: 'acc', name: 'Apple Watch Ultra 3', price: 8200, img: 'https://storage.micromagma.ma/micromagma/6d19a086ed06a4cc0d3f9ca3299579f2.jpg', hot: true},
+            {cat: 'acc', name: 'PS5 Pro Console', price: 8500, img: 'https://m.media-amazon.com/images/I/619BkvKW35L._SL1500_.jpg', hot: true}
+        ];
+
+        let cart = [], discount = 0, currentP = null, currentCat = 'all';
+
+        // Ga3 les fonctions dyalk b-nefs l-asmia w l-logic
+        function renderGrid(c = 'all', btn = null) {
+            currentCat = c;
+            if(btn) { 
+                document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn glass px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest'); 
+                btn.classList.add('active', 'border-cyan-400', 'text-cyan-400'); 
+            }
+            const g = document.getElementById('grid'); g.innerHTML = '';
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            
+            inventory.filter(i => (c === 'all' || i.cat === c) && i.name.toLowerCase().includes(q)).forEach(i => {
+                g.innerHTML += `
+                    <div class="product-card glass p-4" onclick="openP('${i.name.replace(/'/g, "\\'")}')">
+                        ${i.hot ? '<span class="badge-hot absolute top-2 right-2 px-2 py-1 rounded-lg text-[8px] font-black z-10 uppercase tracking-tighter">Premium</span>' : ''}
+                        <div class="img-box mb-4"><img src="${i.img}" class="object-contain p-2 max-h-full transition-transform duration-500 hover:scale-110"></div>
+                        <h4 class="text-[10px] font-black uppercase truncate text-slate-300 tracking-wider">${i.name}</h4>
+                        <p class="text-cyan-400 font-black text-sm mt-1 tracking-tighter">${i.price.toLocaleString()} DH</p>
+                    </div>`;
+            });
+        }
+
+        function openP(name) {
+            currentP = inventory.find(i => i.name === name);
+            document.getElementById('mTitle').innerText = currentP.name;
+            document.getElementById('mImg').src = currentP.img;
+            document.getElementById('mQty').value = 1;
+            updateModalPrice();
+            document.getElementById('pModal').classList.add('active');
+        }
+
+        function updateModalPrice() {
+            if(!currentP) return;
+            const sub = parseInt(document.getElementById('mEtat').options[document.getElementById('mEtat').selectedIndex].getAttribute('data-sub'));
+            const plus = parseInt(document.getElementById('mStorage').options[document.getElementById('mStorage').selectedIndex].getAttribute('data-plus'));
+            const gar = parseInt(document.getElementById('mGarantie').options[document.getElementById('mGarantie').selectedIndex].getAttribute('data-g'));
+            const qty = parseInt(document.getElementById('mQty').value);
+            document.getElementById('mPrice').innerText = ((currentP.price + sub + plus + gar) * qty).toLocaleString() + " DH";
+        }
+
+        function addToCart() {
+            const e = document.getElementById('mEtat'), s = document.getElementById('mStorage'), g = document.getElementById('mGarantie');
+            const unitPrice = currentP.price + parseInt(e.options[e.selectedIndex].getAttribute('data-sub')) + 
+                             parseInt(s.options[s.selectedIndex].getAttribute('data-plus')) + 
+                             parseInt(g.options[g.selectedIndex].getAttribute('data-g'));
+            cart.push({
+                id: Date.now(), name: currentP.name, price: unitPrice, qty: parseInt(document.getElementById('mQty').value),
+                desc: `${e.value} | ${s.value} | ${g.value}`, img: currentP.img
+            });
+            updateUI(); closeM();
+        }
+
+        function updateUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const list = document.getElementById('cartList');
+            list.innerHTML = cart.length ? '' : '<p class="text-center py-10 opacity-20 font-black italic text-xs tracking-widest uppercase">Votre panier est vide</p>';
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price * item.qty;
+                list.innerHTML += `
+                    <div class="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 transition-all hover:bg-white/10">
+                        <img src="${item.img}" class="w-12 h-12 bg-white rounded-lg object-contain p-1 shadow-md">
+                        <div class="flex-1">
+                            <h4 class="text-[10px] font-black uppercase text-white tracking-tight">${item.name}</h4>
+                            <p class="text-[8px] text-slate-500 uppercase font-bold">${item.desc}</p>
+                            <p class="text-cyan-400 font-black text-xs mt-1">${(item.price * item.qty).toLocaleString()} DH</p>
+                        </div>
+                        <button onclick="removeItem(${item.id})" class="text-red-500 hover:text-red-400 p-2 transition-colors"><i class="fas fa-trash-alt"></i></button>
+                    </div>`;
+            });
+            document.getElementById('grandTotal').innerText = (total * (1 - discount)).toLocaleString() + " DH";
+        }
+
+        function applyPromo() {
+            if(document.getElementById('promoCode').value.toUpperCase() === "ELECTRO2026") {
+                discount = 0.1; alert("Promo Activée : -10% sur tout !");
+            } else { discount = 0; alert("Code invalide"); }
+            updateUI();
+        }
+
+        function sendOrderWhatsApp() {
+            if(!cart.length) return alert("Le panier est vide!");
+            let msg = "*NOUVELLE COMMANDE - ELECTRO CARE 2026*\n\n";
+            cart.forEach((i, idx) => {
+                msg += `*${idx+1}. ${i.name}* (x${i.qty})\n- Config: ${i.desc}\n- Prix: ${i.price.toLocaleString()} DH\n\n`;
+            });
+            msg += `*TOTAL FINAL: ${document.getElementById('grandTotal').innerText}*`;
+            window.open("https://wa.me/212617362196?text=" + encodeURIComponent(msg));
+        }
+
+        function searchProducts() { renderGrid(currentCat); }
+        function removeItem(id) { cart = cart.filter(i => i.id !== id); updateUI(); }
+        function toggleCart() { document.getElementById('cartOverlay').classList.toggle('active'); }
+        function closeM() { document.getElementById('pModal').classList.remove('active'); }
+        
+        renderGrid('all');
+    </script>
+</body>
+</html>
